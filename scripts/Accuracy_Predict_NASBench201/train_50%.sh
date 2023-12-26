@@ -2,7 +2,7 @@ BASE_DIR="."
 
 python $BASE_DIR/main.py \
     --do_train \
-    --device 2 \
+    --device 3 \
     --dataset nasbench201 \
     --data_path "$BASE_DIR/data/nasbench201/all_nasbench201.pt" \
     --percent 7813 \
@@ -11,8 +11,8 @@ python $BASE_DIR/main.py \
     --d_model 192 \
     --graph_d_ff 768 \
     --graph_n_head 6 \
-    --depths 6 1 1 1 \
-    --epochs 4000 \
+    --depths 12 \
+    --epochs 3000 \
     --model_ema \
     --lr 1e-4 \
     --lambda_diff 0.2 \

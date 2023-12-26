@@ -1,4 +1,4 @@
-BASE_DIR="/home/disk/NAR-Former"
+BASE_DIR="."
 
 for PRETRAINED in "nasbench201_latest" "nasbench201_model_best" "nasbench201_model_best_ema"; do
 
@@ -10,9 +10,9 @@ python $BASE_DIR/main.py \
     --d_model 192 \
     --graph_d_ff 768 \
     --graph_n_head 6 \
-    --depths 6 1 1 1 \
-    --save_path "checkpoints_50%_aug/${PRETRAINED}_test_all" \
-    --pretrained_path "checkpoints_50%_aug/${PRETRAINED}.pth.tar" \
+    --depths 12 \
+    --save_path "output/nasbench201/neuralformer_50%_aug/${PRETRAINED}_test_all/" \
+    --pretrained_path "output/nasbench201/neuralformer_50%_aug/${PRETRAINED}.pth.tar" \
     --embed_type "nape" \
     --use_extra_token \
 

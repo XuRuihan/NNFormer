@@ -10,8 +10,8 @@ python $BASE_DIR/main.py \
     --d_model 192 \
     --graph_d_ff 768 \
     --graph_n_head 6 \
-    --depths 6 1 1 1 \
-    --save_path "output/nasbench201/neuralformer_10%/${PRETRAINED}_test_all" \
+    --depths 12 \
+    --save_path "output/nasbench201/neuralformer_10%/${PRETRAINED}_test_all/" \
     --pretrained_path "output/nasbench201/neuralformer_10%/${PRETRAINED}.pth.tar" \
     --embed_type "nape" \
     --use_extra_token \

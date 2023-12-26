@@ -103,24 +103,10 @@ class SelfAttentionBlock(nn.Module):
         )
         self.drop_path = DropPath(droppath) if droppath > 0.0 else nn.Identity()
 
-    def forward(self, x: Tensor, rel_pos: Optional[Tensor]) -> Tensor:
+    def forward(self, x: Tensor, rel_pos: Optional[Tensor] = None) -> Tensor:
         x_ = self.norm(x)
         x_ = self.attn(x_, x_, x_, rel_pos)
         return self.drop_path(x_) + x
-
-
-class CrossAttentionBlock(nn.Module):
-    def __init__(self, dim: int, n_head: int, dropout: float, droppath: float):
-        super().__init__()
-        self.norm = nn.LayerNorm(dim)
-        self.attn = MultiHeadAttention(dim, n_head, dropout, q_learnable=True)
-        self.drop_path = DropPath(droppath) if droppath > 0.0 else nn.Identity()
-
-    def forward(self, x: Tensor, learnt_q: Tensor) -> Tensor:
-        x_ = self.norm(x)
-        x_ = self.attn(learnt_q, x_, x_)
-        # In multi_stage' attention, no residual connection is used because of the change in output shape
-        return self.drop_path(x_)
 
 
 class Mlp(nn.Module):
@@ -251,75 +237,11 @@ class EncoderBlock(nn.Module):
         return x
 
 
-# Blocks Used in Encoder
-class FuseFeatureBlock(nn.Module):
-    def __init__(
-        self,
-        dim: int,
-        n_head: int,
-        dropout: float,
-        droppath: float,
-        mlp_ratio: float = 4.0,
-        act_layer: str = "relu",
-    ):
-        super().__init__()
-        self.norm_kv = nn.LayerNorm(dim)
-        self.norm_q = nn.LayerNorm(dim)
-        self.fuse_attn = MultiHeadAttention(dim, n_head, dropout, q_learnable=False)
-        self.feed_forward = FeedForwardBlock(
-            dim, mlp_ratio, act_layer, dropout, droppath
-        )
-
-    def forward(self, memory: Tensor, q: Tensor) -> Tensor:
-        x_ = self.norm_kv(memory)
-        q_ = self.norm_q(q)
-        x = self.fuse_attn(q_, x_, x_)
-        x = self.feed_forward(x)
-        return x
-
-
-class FuseStageBlock(nn.Module):
-    def __init__(
-        self,
-        depths: List[int],
-        dim: int,
-        n_head: int,
-        mlp_ratio: float,
-        act_layer: str,
-        dropout: float,
-        droppath: float,
-        stg_id: int,
-        dp_rates: float,
-    ):
-        super().__init__()
-        self.n_self_attn = depths[stg_id] - 1
-        self.self_attns = nn.ModuleList()
-        self.feed_forwards = nn.ModuleList()
-        for i, droppath in enumerate(dp_rates):
-            if i == 0:
-                self.cross_attn = CrossAttentionBlock(dim, n_head, dropout, droppath)
-            else:
-                self.self_attns.append(
-                    SelfAttentionBlock(dim, n_head, dropout, droppath)
-                )
-            self.feed_forwards.append(
-                FeedForwardBlock(dim, mlp_ratio, act_layer, dropout, droppath)
-            )
-
-    def forward(self, kv: Tensor, q: Tensor) -> Tensor:
-        x = self.cross_attn(kv, q)
-        x = self.feed_forwards[0](x)
-        for i in range(self.n_self_attn):
-            x = self.self_attns[i](x)
-            x = self.feed_forwards[i + 1](x)
-        return x
-
-
 # Main class
 class Encoder(nn.Module):
     def __init__(
         self,
-        depths: List[int] = [6, 1, 1, 1],
+        depths: List[int] = [12],
         dim: int = 192,
         n_head: int = 6,
         mlp_ratio: float = 4.0,
@@ -330,12 +252,11 @@ class Encoder(nn.Module):
         super().__init__()
         self.num_stage = len(depths)
         self.num_layers = sum(depths)
-        self.norm = nn.LayerNorm(dim)
 
         # stochastic depth
         dpr = [x.item() for x in torch.linspace(0, droppath, self.num_layers)]
 
-        # 1st stage: Encoder
+        # Encoder stage
         self.layers = nn.ModuleList()
         for i in range(depths[0]):
             droppath = dpr[i]
@@ -343,75 +264,13 @@ class Encoder(nn.Module):
                 EncoderBlock(dim, n_head, mlp_ratio, act_layer, dropout, droppath)
             )
 
-        if self.num_stage > 1:
-            # Rest stage: information fusion
-            self.fuseUnit = nn.ModuleList()
-            self.fuseStages = nn.ModuleList()
-            self.fuseStages.append(
-                FuseStageBlock(
-                    depths,
-                    dim,
-                    n_head,
-                    mlp_ratio,
-                    act_layer,
-                    dropout,
-                    droppath,
-                    stg_id=1,
-                    dp_rates=dpr[sum(depths[:1]) : sum(depths[:2])],
-                )
-            )
-            for i in range(2, self.num_stage):
-                self.fuseUnit.append(
-                    FuseFeatureBlock(
-                        dim,
-                        n_head,
-                        dropout,
-                        droppath,
-                        mlp_ratio,
-                        act_layer,
-                    )
-                )
-                self.fuseStages.append(
-                    FuseStageBlock(
-                        depths,
-                        dim,
-                        n_head,
-                        mlp_ratio,
-                        act_layer,
-                        dropout,
-                        droppath,
-                        stg_id=i,
-                        dp_rates=dpr[sum(depths[:i]) : sum(depths[: i + 1])],
-                    )
-                )
-
-            self.learnt_q = nn.ParameterList(
-                [
-                    nn.Parameter(torch.randn(1, 2 ** (3 - s), dim))
-                    for s in range(1, self.num_stage)
-                ]
-            )
+        self.norm = nn.LayerNorm(dim)
 
     def forward(self, x: Tensor, rel_pos: Tensor, adj: Tensor) -> Tensor:
-        B, _, _ = x.shape
-
         # 1st stage: Encoder
         for i, layer in enumerate(self.layers):
             x = layer(x, rel_pos, adj)
-        x_ = x
-        # Rest stage: information fusion
-        if self.num_stage > 1:
-            memory = x
-            q = self.fuseStages[0](
-                memory, self.learnt_q[0].repeat(B, 1, 1, 1)
-            )  # q(b,4,d)
-            for i in range(self.num_stage - 2):
-                kv = self.fuseUnit[i](memory, q)
-                q = self.fuseStages[i + 1](
-                    kv, self.learnt_q[i + 1].repeat(B, 1, 1, 1)
-                )  # q(b,2,d), q(b,1,d)
-            x_ = q
-        output = self.norm(x_)
+        output = self.norm(x)
         return output
 
 
@@ -434,7 +293,7 @@ class RegHead(nn.Module):
             x_ = x[:, 0, :]  # (b, d)
 
         res = self.layer(x_)
-        return res + 0.5
+        return res
 
 
 def tokenizer(ops, adj: Tensor, dim_x=48, dim_p=48, embed_type="nape"):
@@ -469,7 +328,7 @@ def tokenizer(ops, adj: Tensor, dim_x=48, dim_p=48, embed_type="nape"):
 class NeuralFormer(nn.Module):
     def __init__(
         self,
-        depths: List[int] = [6, 1, 1, 1],
+        depths: List[int] = [12],
         dim: int = 192,
         n_head: int = 6,
         mlp_ratio: float = 4.0,
@@ -511,9 +370,6 @@ class NeuralFormer(nn.Module):
     @torch.jit.ignore()
     def no_weight_decay(self):
         no_decay = {}
-        # no_decay = {
-        #     f"transformer.learnt_q.{i}" for i in range(len(self.config.depths) - 1)
-        # }
         return no_decay
 
     def forward(self, sample, static_feats) -> Tensor:
@@ -529,5 +385,5 @@ class NeuralFormer(nn.Module):
 
         aev = self.transformer(seqcode, rel_pos, adj.to(torch.float))
         # multi_stage:aev(b, 1, d)
-        predict = self.head(aev)
+        predict = self.head(aev) + 0.5
         return predict

@@ -22,10 +22,7 @@ def argLoader():
         "--n_percent", type=float, default=1, help="train proportion or numbers"
     )
     parser.add_argument(
-        "--multires_x", type=int, default=48, help="dim of operation encoding"
-    )
-    parser.add_argument(
-        "--multires_p", type=int, default=48, help="dim of position encoding"
+        "--multires_x", type=int, default=96, help="dim of operation encoding"
     )
     parser.add_argument(
         "--embed_type",
@@ -91,8 +88,6 @@ if __name__ == "__main__":
     args = argLoader()
     save_dir, file_name = os.path.split(args.data_path)
 
-    dx, dp = args.multires_x, args.multires_p
-
     train_data = torch.load(args.data_path)
 
     permutations = permutation_sequences()
@@ -112,7 +107,7 @@ if __name__ == "__main__":
             continue
         aug_num += len(auged_opss)
         netcodes = [
-            tokenizer(auged_ops, auged_adj, dx, dp, args.embed_type)
+            tokenizer(auged_ops, auged_adj, args.multires_x, args.embed_type)
             for auged_ops, auged_adj in zip(auged_opss, auged_adjs)
         ]
         auged_data[key] = dict()

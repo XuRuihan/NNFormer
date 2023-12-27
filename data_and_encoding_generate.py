@@ -26,10 +26,7 @@ def argLoader():
         "--load_all", type=bool, default=True, help="load total dataset"
     )
     parser.add_argument(
-        "--multires_x", type=int, default=48, help="dim of operation encoding"
-    )
-    parser.add_argument(
-        "--multires_p", type=int, default=48, help="dim of position encoding"
+        "--multires_x", type=int, default=96, help="dim of operation encoding"
     )
     parser.add_argument(
         "--embed_type",
@@ -49,8 +46,7 @@ def get_nasbench101_item(archs, i: int):
     code, rel_pos, code_depth = tokenizer(
         ops,
         adj,
-        dx,
-        dp,
+        args.multires_x,
         args.embed_type,
     )
     return {
@@ -72,8 +68,7 @@ def get_nasbench201_item(archs, i: int):
     code, rel_pos, code_depth = tokenizer(
         ops,
         adj,
-        dx,
-        dp,
+        args.multires_x,
         args.embed_type,
     )
     return {
@@ -98,7 +93,6 @@ if __name__ == "__main__":
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
-    dx, dp = args.multires_x, args.multires_p
     if args.load_all:
         with open(args.data_path) as f:
             archs = json.load(f)

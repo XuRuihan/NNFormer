@@ -62,7 +62,7 @@ def init_optim(args, net, nbatches, warm_step=0.1):
         num_warmup_steps=warm_step * nbatches * args.epochs,
         num_training_steps=nbatches * args.epochs,
         num_cycles=1,
-        min_ratio=args.min_lr / args.lr
+        min_ratio=args.min_ratio
     )
     print("warmup steps:", warm_step * nbatches * args.epochs)
     return optimizer, lr_scheduler

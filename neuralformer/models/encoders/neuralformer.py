@@ -225,7 +225,7 @@ class EncoderBlock(nn.Module):
     ):
         super().__init__()
         self.self_attn = SelfAttentionBlock(
-            dim, n_head, dropout, droppath, rel_pos_bias=True
+            dim, n_head, dropout, droppath, rel_pos_bias=False
         )
         self.feed_forward = FeedForwardBlock(
             dim, mlp_ratio, act_layer, dropout, droppath, gcn=True
@@ -296,7 +296,7 @@ class RegHead(nn.Module):
         return res
 
 
-def tokenizer(ops, adj: Tensor, dim_x=48, dim_p=48, embed_type="nape"):
+def tokenizer(ops, adj: Tensor, dim_x: int = 96, embed_type: str = "nape"):
     adj = torch.tensor(adj)
 
     # encode operation
@@ -305,15 +305,8 @@ def tokenizer(ops, adj: Tensor, dim_x=48, dim_p=48, embed_type="nape"):
     code_ops_list += [fn(torch.Tensor([op])) for op in ops]
     code_ops = torch.stack(code_ops_list, dim=0)  # (len, dim_x)
 
-    # encode self position
-    code_pos_list = [fn(torch.Tensor([30]))]
-    code_pos_list += [fn(torch.Tensor([i])) for i in range(len(ops))]
-    code_pos = torch.stack(code_pos_list, dim=0)  # (len, dim_p)
-    code = torch.cat([code_ops, code_pos], dim=-1)
-
     depth = torch.Tensor([len(ops)])
-    depth_fn = Embedder(dim_x + dim_p, embed_type=embed_type)
-    code_depth = depth_fn(depth).reshape(1, -1)
+    code_depth = fn(depth).reshape(1, -1)
 
     shortest_path, path = algos.floyd_warshall(adj.numpy())
     shortest_path = torch.from_numpy(shortest_path).long()
@@ -322,7 +315,7 @@ def tokenizer(ops, adj: Tensor, dim_x=48, dim_p=48, embed_type="nape"):
     rel_pos = torch.full((len(ops) + 2, len(ops) + 2), fill_value=9).int()
     rel_pos[1:-1, 1:-1] = shortest_path
 
-    return code, rel_pos, code_depth
+    return code_ops, rel_pos, code_depth
 
 
 class NeuralFormer(nn.Module):

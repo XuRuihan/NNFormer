@@ -57,14 +57,8 @@ def argLoader():
     parser.add_argument(
         "--multires_x",
         type=int,
-        default=48,
+        default=96,
         help="Operations encoding dim = 2*multires_x",
-    )
-    parser.add_argument(
-        "--multires_p",
-        type=int,
-        default=48,
-        help="Position encoding dim = 2*multires_p",
     )
     parser.add_argument("--graph_d_model", type=int, default=192)
     parser.add_argument("--graph_n_head", type=int, default=6)
@@ -148,11 +142,10 @@ def argLoader():
         help="learning rate cycle len multiplier (default: 1.0)",
     )
     group.add_argument(
-        "--min_lr",
+        "--min_ratio",
         type=float,
-        default=1e-6,
-        metavar="LR",
-        help="lower lr bound for cyclic schedulers that hit 0 (1e-6)",
+        default=1e-1,
+        help="lower lr bound for cyclic schedulers that hit 0 (1e-1)",
     )
     group.add_argument(
         "--decay_rate",

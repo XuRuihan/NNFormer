@@ -2,10 +2,10 @@ BASE_DIR="."
 
 python $BASE_DIR/main.py \
     --do_train \
-    --device 1 \
+    --device 0 \
     --dataset nasbench101 \
     --data_path "$BASE_DIR/data/nasbench101/all_nasbench101.pt" \
-    --percent 21180 \
+    --percent 172 \
     --batch_size 128 \
     --graph_d_model 192 \
     --d_model 192 \
@@ -17,8 +17,7 @@ python $BASE_DIR/main.py \
     --lr 1e-4 \
     --lambda_diff 0.2 \
     --test_freq 5 \
-    --save_path "output/nasbench101/neuralformer_5%_aug/" \
+    --save_path "output/nasbench101/neuralformer_0.04%/" \
     --embed_type "nape" \
     --use_extra_token \
-    --aug_data_path "$BASE_DIR/data/nasbench101/21181_nasbench101_aug.pt" \
     --lambda_consistency 1.0 \

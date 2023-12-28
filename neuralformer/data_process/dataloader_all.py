@@ -75,7 +75,6 @@ def init_dataloader(args, logger):
                 args.data_path,
                 args.percent,
                 args.lambda_consistency,
-                args.aug_data_path,
             )
             valset = NasbenchDataset(
                 logger, args.dataset, "val", args.data_path, args.percent
@@ -111,8 +110,6 @@ def init_dataloader(args, logger):
                 args.data_path,
                 args.percent,
                 args.lambda_consistency,
-                args.aug_data_path,
-                args.augtest,
             )
             sampler = FixedLengthBatchSampler(
                 dataset, args.dataset, args.batch_size, include_partial=True

@@ -32,24 +32,17 @@ You can generate the preprocessed dataset following the steps below.  This pipel
    ```
    The generated file `all_nasbench201.pt` will be saved in `./data/nasbench201/`.
 
-4. Run the following code to generate the augmented data file.
-   ```
-   python ac_aug_generate.py --dataset nasbench201 --data_path data/nasbench201/all_nasbench201.pt
-   # python ac_aug_generate.py --dataset nasbench101 --data_path data/nasbench101/all_nasbench101.pt --n_percent 0.05
-   ```
-   The file of augmented data will be saved in `./data/nasbench201/`.
-
 ### Train NeuralFormer
 You can train NeuralFormer following the script below:
 ```
-bash scripts/Accuracy_Predict_NASBench201/train_5%_aug.sh
+bash scripts/Accuracy_Predict_NASBench201/train_5%.sh
 ```
-The trained models will be saved in `./output/nasbench-201/neuralformer_5%_aug/`. Training scripts of other settings are shown in the [scripts](./scripts/) directory.
+The trained models will be saved in `./output/nasbench-201/neuralformer_5%/`. Training scripts of other settings are shown in the [scripts](./scripts/) directory.
 
 ### Evaluate the pretrained model
 You can evaluate the trained NeuralFormer following the script below:
 ```
-bash test_5%_aug.sh
+bash test_5%.sh
 ```
 Evaluating scripts of other models are also shown in the [scripts](./scripts/) directory.
 

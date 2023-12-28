@@ -20,3 +20,4 @@ python $BASE_DIR/main.py \
     --save_path "output/nasbench101/neuralformer_0.1%/" \
     --embed_type "nape" \
     --use_extra_token \
+    --lambda_consistency 1.0 \

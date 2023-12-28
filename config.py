@@ -19,12 +19,6 @@ def argLoader():
         help="trainings samples, percent or numbers",
     )
     parser.add_argument("--data_path", type=str, default="data/nasbench101/")
-    parser.add_argument(
-        "--aug_data_path",
-        type=str,
-        default=None,
-        help="Path of augmented training dataset",
-    )
     # NNLQP
     parser.add_argument("--override_data", action="store_true")
     parser.add_argument("--test_model_type", type=str, default="resnet18")
@@ -224,11 +218,6 @@ def argLoader():
     # Evalutation
     parser.add_argument(
         "--test_freq", type=int, default=1, help='Test frequency (default: "1")'
-    )
-    parser.add_argument(
-        "--augtest",
-        action="store_true",
-        help="Augmentation during testing",
     )
 
     args = parser.parse_args()

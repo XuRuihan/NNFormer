@@ -17,6 +17,7 @@ python $BASE_DIR/main.py \
     --lr 1e-4 \
     --lambda_diff 0.2 \
     --test_freq 5 \
-    --save_path "output/nasbench201/neuralformer_10%_aug/" \
+    --save_path "output/nasbench201/neuralformer_10%/" \
     --embed_type "nape" \
     --use_extra_token \
+    --lambda_consistency 1.0 \

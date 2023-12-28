@@ -14,21 +14,17 @@ class NasbenchDataset(Dataset):
         data_path,
         percent=0,
         lbd_consistency=0,
-        aug_data_path=None,
-        augtest=False,
     ):
         self.part = part
         self.dataset = dataset
         self.consistency = lbd_consistency
         self.data_path = data_path
-        self.aug_data_path = aug_data_path
-        self.augtest = augtest
         self.percent = percent
 
         t0 = time.time()
         logger.info(f"Building dataset {self.part} from .pth file")
         self.data = self._load()
-        t = (time.time() - t0)
+        t = time.time() - t0
         if self.consistency > 0:
             total_samples = sum(len(data) for data in self.data)
             logger.info(
@@ -44,10 +40,6 @@ class NasbenchDataset(Dataset):
         data_file = self.data_path
         datas = [torch.load(data_file)]
 
-        if self.aug_data_path:
-            datas.append(torch.load(self.aug_data_path))
-            keys_aug = datas[1].keys()
-
         loaded_data = []
         data_num = (
             int(self.percent) if self.percent > 1 else int(len(datas[0]) * self.percent)
@@ -62,28 +54,13 @@ class NasbenchDataset(Dataset):
             # keys = list(range(data_num + 1024, len(datas[0]))) # test rest
 
         for key in keys:
-            # use augmentation and consistency loss
-            if (self.part == "train" and self.consistency > 0) or (
-                self.part == "test" and self.augtest
-            ):
-                if key in keys_aug:
-                    loaded_data.append([datas[0][key], *datas[1][key].values()])
-                else:
-                    loaded_data.append([datas[0][key], datas[0][key]])
+            # use consistency loss
+            if self.part == "train" and self.consistency > 0:
+                loaded_data.append([datas[0][key], datas[0][key]])
 
-            # use augmentation, no consistency loss
+            # no consistency loss, val and test
             elif (
-                self.part == "train"
-                and (self.consistency == 0.0)
-                and self.aug_data_path
-            ):
-                loaded_data.append(datas[0][key])
-                if key in keys_aug:
-                    loaded_data += datas[1][key].values()
-
-            # no augmentataion, no consistency loss, val and test
-            elif (
-                (self.part == "train" and not self.aug_data_path)
+                (self.part == "train" and self.consistency == 0.0)
                 or self.part == "val"
                 or self.part == "test"
             ):
@@ -92,9 +69,7 @@ class NasbenchDataset(Dataset):
         return loaded_data
 
     def __getitem__(self, index):
-        if (self.part == "train" and self.consistency > 0) or (
-            self.part == "test" and self.augtest
-        ):
+        if (self.part == "train" and self.consistency > 0):
             # data_0, data_1 = random.sample(self.data[index], 2)
             data_0 = self.data[index][0]
             data_1 = random.sample(self.data[index][1:], 1)[0]

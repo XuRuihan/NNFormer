@@ -195,26 +195,16 @@ def train(config):
 
 
 @torch.no_grad()
-def infer(dataloader, net, dataset, device=None, isTest=False, augtest=False):
+def infer(dataloader, net, dataset, device=None, isTest=False):
     metric = Metric()
     net.eval()
     for bid, batch_data in enumerate(dataloader):
         if "nasbench" in dataset:
-            if augtest:
-                data_0, data_1 = batch_data
-                batch_data = {
-                    key: torch.cat([data_0[key], data_1[key]], dim=0)
-                    for key in data_0.keys()
-                }
             gt = batch_data["test_acc_avg"] if isTest else batch_data["val_acc_avg"]
             if device != None:
                 for k, v in batch_data.items():
                     batch_data[k] = v.to(device)
             logits = net(batch_data, None)
-            if augtest:
-                logit1, logit2 = logits.chunk(2)
-                logits = (logit1 + logit2) / 2
-                gt = gt.chunk(2)[0]
         elif dataset == "nnlqp":
             codes, gt, sf = (
                 batch_data[0]["netcode"],
@@ -250,7 +240,6 @@ def test(config):
         config.dataset,
         config.device,
         isTest=True,
-        augtest=config.augtest,
     )
     logger.info(
         f"Test with test acc: KT {tau:8.5f}, MAPE {acc:8.5f}, ErrBnd(0.01) {err:8.5f}"
@@ -261,7 +250,6 @@ def test(config):
         config.dataset,
         config.device,
         isTest=False,
-        augtest=config.augtest,
     )
     logger.info(
         f"Test with val acc: KT {tau:8.5f}, MAPE {acc:8.5f}, ErrBnd(0.01) {err:8.5f}"

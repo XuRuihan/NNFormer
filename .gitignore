@@ -153,3 +153,4 @@ log/
 logs/
 /datasets/
 /data/
+algos.c

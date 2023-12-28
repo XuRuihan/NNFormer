@@ -43,9 +43,11 @@ def get_nasbench101_item(archs, i: int):
     index = str(i)
     ops = archs[index]["module_operations"]
     adj = archs[index]["module_adjacency"]
+    depth = len(ops)
     code, rel_pos, code_depth = tokenizer(
         ops,
         adj,
+        depth,
         args.multires_x,
         args.embed_type,
     )
@@ -65,9 +67,11 @@ def get_nasbench201_item(archs, i: int):
     index = str(i)
     ops = archs[index]["module_operations"]
     adj = archs[index]["module_adjacency"]
+    depth = len([op for op in ops if op != 5])  # `op == 5` indicates `none`
     code, rel_pos, code_depth = tokenizer(
         ops,
         adj,
+        depth,
         args.multires_x,
         args.embed_type,
     )

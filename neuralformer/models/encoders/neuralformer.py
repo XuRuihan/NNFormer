@@ -55,8 +55,8 @@ class MultiHeadAttention(nn.Module):
 
         self.rel_pos_bias = rel_pos_bias
         if rel_pos_bias:
-            self.rel_pos_encoder_forward = nn.Embedding(10, self.n_head, padding_idx=9)
-            self.rel_pos_encoder_backward = nn.Embedding(10, self.n_head, padding_idx=9)
+            self.rel_pos_forward = nn.Embedding(10, self.n_head, padding_idx=9)
+            self.rel_pos_backward = nn.Embedding(10, self.n_head, padding_idx=9)
 
     def forward(
         self,
@@ -72,9 +72,10 @@ class MultiHeadAttention(nn.Module):
             for l, x in zip(self.linears, (key, value, query))
         ]
         if self.rel_pos_bias:
+            # rel_pos = rel_pos.masked_fill(rel_pos == 9, 0)
+            # rel_pos = rel_pos.masked_fill(rel_pos == 8, 0)
             rel_pos_bias = (
-                self.rel_pos_encoder_forward(rel_pos)
-                + self.rel_pos_encoder_backward(rel_pos.transpose(-2, -1))
+                self.rel_pos_forward(rel_pos) + self.rel_pos_backward(rel_pos.mT)
             ).permute(0, 3, 1, 2)
         else:
             rel_pos_bias = None
@@ -225,7 +226,7 @@ class EncoderBlock(nn.Module):
     ):
         super().__init__()
         self.self_attn = SelfAttentionBlock(
-            dim, n_head, dropout, droppath, rel_pos_bias=False
+            dim, n_head, dropout, droppath, rel_pos_bias=True
         )
         self.feed_forward = FeedForwardBlock(
             dim, mlp_ratio, act_layer, dropout, droppath, gcn=True
@@ -296,7 +297,7 @@ class RegHead(nn.Module):
         return res
 
 
-def tokenizer(ops, adj: Tensor, dim_x: int = 96, embed_type: str = "nape"):
+def tokenizer(ops, adj: Tensor, depth: int, dim_x: int = 96, embed_type: str = "nape"):
     adj = torch.tensor(adj)
 
     # encode operation
@@ -305,7 +306,7 @@ def tokenizer(ops, adj: Tensor, dim_x: int = 96, embed_type: str = "nape"):
     code_ops_list += [fn(torch.Tensor([op])) for op in ops]
     code_ops = torch.stack(code_ops_list, dim=0)  # (len, dim_x)
 
-    depth = torch.Tensor([len(ops)])
+    depth = torch.Tensor([depth])
     code_depth = fn(depth).reshape(1, -1)
 
     shortest_path, path = algos.floyd_warshall(adj.numpy())
@@ -314,6 +315,8 @@ def tokenizer(ops, adj: Tensor, dim_x: int = 96, embed_type: str = "nape"):
 
     rel_pos = torch.full((len(ops) + 2, len(ops) + 2), fill_value=9).int()
     rel_pos[1:-1, 1:-1] = shortest_path
+    # rel_pos[0, 0] = 0
+    # rel_pos[-1, -1] = 0
 
     return code_ops, rel_pos, code_depth
 

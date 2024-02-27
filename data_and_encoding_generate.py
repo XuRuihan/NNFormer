@@ -31,7 +31,7 @@ def argLoader():
     parser.add_argument(
         "--embed_type",
         type=str,
-        default="nape",
+        default="trans",
         help="Type of position embedding: nape|nerf|trans",
     )
     parser.add_argument("--split_type", type=str, default="GATES", help="GATES|TNASP")

@@ -69,7 +69,7 @@ class NasbenchDataset(Dataset):
         return loaded_data
 
     def __getitem__(self, index):
-        if (self.part == "train" and self.consistency > 0):
+        if self.part == "train" and self.consistency > 0:
             # data_0, data_1 = random.sample(self.data[index], 2)
             data_0 = self.data[index][0]
             data_1 = random.sample(self.data[index][1:], 1)[0]
@@ -89,12 +89,12 @@ class NasbenchDataset(Dataset):
                 return self.preprocess_201(self.data[index])
 
     def preprocess_101(self, data):
-        ops = torch.IntTensor(data["ops"])
-        code = torch.Tensor(data["code"])
-        code_rel_pos = torch.IntTensor(data["code_rel_pos"])
-        code_depth = torch.Tensor(data["code_depth"])
-        val_acc_avg = torch.Tensor([data["validation_accuracy"]])
-        test_acc_avg = torch.Tensor([data["test_accuracy"]])
+        ops = torch.tensor(data["ops"], dtype=torch.int)
+        code = torch.tensor(data["code"], dtype=torch.float)
+        code_rel_pos = torch.tensor(data["code_rel_pos"], dtype=torch.int)
+        code_depth = torch.tensor(data["code_depth"], dtype=torch.float)
+        val_acc_avg = torch.tensor([data["validation_accuracy"]], dtype=torch.float)
+        test_acc_avg = torch.tensor([data["test_accuracy"]], dtype=torch.float)
         return {
             "ops": ops,
             "code": code,
@@ -106,10 +106,10 @@ class NasbenchDataset(Dataset):
         }
 
     def preprocess_201(self, data):
-        ops = torch.IntTensor(data["ops"])
-        code = torch.Tensor(data["code"])
-        code_rel_pos = torch.IntTensor(data["code_rel_pos"])
-        code_depth = torch.Tensor(data["code_depth"])
+        ops = torch.tensor(data["ops"], dtype=torch.int)
+        code = torch.tensor(data["code"], dtype=torch.float)
+        code_rel_pos = torch.tensor(data["code_rel_pos"], dtype=torch.int)
+        code_depth = torch.tensor(data["code_depth"], dtype=torch.float)
         val_acc_avg = torch.Tensor([data["valid_accuracy_avg"]]) * 0.01
         test_acc_avg = torch.Tensor([data["test_accuracy_avg"]]) * 0.01
         return {

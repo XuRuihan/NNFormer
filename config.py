@@ -212,7 +212,10 @@ def argLoader():
         help='weight of diff loss (default: "0.2")',
     )
     parser.add_argument(
-        "--lambda_consistency", type=float, default=0, help="weight of consistency loss"
+        "--lambda_consistency",
+        type=float,
+        default=0.0,
+        help="weight of consistency loss",
     )
 
     # Evalutation

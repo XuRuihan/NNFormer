@@ -9,7 +9,7 @@ python $BASE_DIR/main.py \
     --graph_d_model 192 \
     --d_model 192 \
     --graph_d_ff 768 \
-    --graph_n_head 6 \
+    --graph_n_head 4 \
     --depths 12 \
     --save_path "output/nasbench201/neuralformer_5%/${PRETRAINED}_test_all/" \
     --pretrained_path "output/nasbench201/neuralformer_5%/${PRETRAINED}.pth.tar" \

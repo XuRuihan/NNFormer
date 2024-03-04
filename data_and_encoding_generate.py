@@ -26,13 +26,13 @@ def argLoader():
         "--load_all", type=bool, default=True, help="load total dataset"
     )
     parser.add_argument(
-        "--multires_x", type=int, default=96, help="dim of operation encoding"
+        "--multires_x", type=int, default=32, help="dim of operation encoding"
     )
     parser.add_argument(
         "--embed_type",
         type=str,
-        default="trans",
-        help="Type of position embedding: nape|nerf|trans",
+        default="onehot",
+        help="Type of position embedding: nape|nerf|trans|onehot",
     )
     parser.add_argument("--split_type", type=str, default="GATES", help="GATES|TNASP")
     args = parser.parse_args()

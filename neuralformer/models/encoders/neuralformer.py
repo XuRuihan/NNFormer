@@ -54,7 +54,10 @@ class MultiHeadAttention(nn.Module):
             adj = adj.masked_fill(torch.logical_and(adj > 1, adj < 9), 0)
             adj = adj.masked_fill(adj != 0, 1)
             adj = adj.float()
+            # pe = torch.stack([adj], dim=1).repeat(1, self.n_head // 1, 1, 1)
+            # pe = torch.stack([adj.mT], dim=1).repeat(1, self.n_head // 1, 1, 1)
             # pe = torch.stack([adj, adj.mT], dim=1).repeat(1, self.n_head // 2, 1, 1)
+            # pe = torch.stack([adj, adj.mT, adj @ adj, adj.mT @ adj.mT], dim=1)
             pe = torch.stack([adj, adj.mT, adj.mT @ adj, adj @ adj.mT], dim=1)
             pe = pe + torch.eye(L, dtype=adj.dtype, device=adj.device)
             pe = pe.int()
@@ -282,40 +285,47 @@ class RegHead(nn.Module):
         return res
 
 
-def tokenizer(ops, adj, depth: int, dim_x: int = 96, embed_type: str = "nape"):
+def tokenizer(ops, adj, depth: int, dim_x: int = 192, embed_type: str = "nape"):
     adj = torch.tensor(adj)
 
-    # encode operation
-    fn = Embedder(dim_x, embed_type=embed_type)
-    code_ops_list = [fn(torch.Tensor([30]))]
-    code_ops_list += [fn(torch.Tensor([op])) for op in ops]
-    code_ops = torch.stack(code_ops_list, dim=0)  # (len, dim_x)
+    if embed_type != "onehot":
+        # encode operation
+        fn = Embedder(dim_x // 2, embed_type=embed_type)
+        code_ops_list = [fn(torch.Tensor([30]))]
+        code_ops_list += [fn(torch.Tensor([op])) for op in ops]
+        code_ops = torch.stack(code_ops_list, dim=0)  # (len, dim_x)
 
-    depth = torch.Tensor([depth])
-    code_depth = fn(depth).reshape(1, -1)
+        depth = torch.Tensor([depth])
+        code_depth = fn(depth).reshape(1, -1)
 
-    # shortest_path, path = algos.floyd_warshall(adj.numpy())
-    # shortest_path = torch.from_numpy(shortest_path).long()
-    # shortest_path = torch.clamp(shortest_path, min=0, max=8)
+        # shortest_path, path = algos.floyd_warshall(adj.numpy())
+        # shortest_path = torch.from_numpy(shortest_path).long()
+        # shortest_path = torch.clamp(shortest_path, min=0, max=8)
 
-    rel_pos = torch.full((len(ops) + 2, len(ops) + 2), fill_value=9).int()
-    rel_pos[1:-1, 1:-1] = adj
-    # rel_pos[0, 0] = 0
-    # rel_pos[-1, -1] = 0
+        rel_pos = torch.full((len(ops) + 2, len(ops) + 2), fill_value=9).int()
+        rel_pos[1:-1, 1:-1] = adj
+        # rel_pos[0, 0] = 0
+        # rel_pos[-1, -1] = 0
+        return code_ops, rel_pos, code_depth
 
-    # # One-hot encoding with proper initialization can reach similar performance
-    # code_ops = F.one_hot(torch.tensor([30] + ops), num_classes=dim_x * 2)
-    # code_depth = F.one_hot(torch.tensor([depth]), num_classes=dim_x * 2)
-    # rel_pos = torch.full((len(ops) + 2, len(ops) + 2), fill_value=9)
-    # rel_pos[1:-1, 1:-1] = adj
-
-    return code_ops, rel_pos, code_depth
+    else:
+        # One-hot encoding with proper initialization can reach similar performance
+        code_ops = F.one_hot(torch.tensor([dim_x - 1] + ops), num_classes=dim_x)
+        code_depth = F.one_hot(torch.tensor([depth]), num_classes=dim_x)
+        rel_pos = torch.full((len(ops) + 2, len(ops) + 2), fill_value=9)
+        rel_pos[1:-1, 1:-1] = adj
+        return (
+            code_ops.to(torch.int8),
+            rel_pos.to(torch.int8),
+            code_depth.to(torch.int8),
+        )
 
 
 class NeuralFormer(nn.Module):
     def __init__(
         self,
         depths: List[int] = [12],
+        in_chans: int = 32,
         dim: int = 192,
         n_head: int = 6,
         mlp_ratio: float = 4.0,
@@ -327,9 +337,12 @@ class NeuralFormer(nn.Module):
         dataset: str = "nasbench",
     ):
         super().__init__()
-        self.dim = dim
         self.use_extra_token = use_extra_token
 
+        self.embed = nn.Linear(in_chans, dim)
+        if use_extra_token:
+            self.dep_map = nn.Linear(in_chans, dim)
+        self.norm = nn.LayerNorm(dim)
         self.transformer = Encoder(
             depths=depths,
             dim=dim,
@@ -340,19 +353,8 @@ class NeuralFormer(nn.Module):
             droppath=droppath,
         )
         self.head = RegHead(dim, avg_tokens, 1, dropout)
-        if use_extra_token:
-            self.dep_map = nn.Linear(dim, dim)
 
-        # self.apply(self._init_weights)
-        self.init_weights()
-
-    def init_weights(self):
-        for name, module in self.named_modules():
-            if "embed" in name:
-                nn.init.trunc_normal_(module.weight, std=0.5)
-                nn.init.zeros_(module.bias)
-            else:
-                self._init_weights(module)
+        self.apply(self._init_weights)
 
     def _init_weights(self, m):
         if isinstance(m, (nn.Conv2d, nn.Linear)):
@@ -374,10 +376,12 @@ class NeuralFormer(nn.Module):
         depth = sample["code_depth"]
         rel_pos = sample["code_rel_pos"]
         adj = sample["code_adj"]
-        # Depth token
+
+        seqcode = self.embed(seqcode)
         if self.use_extra_token:
-            code_depth = F.relu(self.dep_map(depth))
+            code_depth = self.dep_map(depth)
             seqcode = torch.cat([seqcode, code_depth], dim=1)
+        seqcode = self.norm(seqcode)
 
         aev = self.transformer(seqcode, rel_pos, adj.to(torch.float))
         # multi_stage:aev(b, 1, d)

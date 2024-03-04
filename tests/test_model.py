@@ -23,7 +23,7 @@ class TestModel(unittest.TestCase):
             [0, 0, 0, 0, 0],
         ]
         depth = 5
-        code, code_rel_pos, code_depth = tokenizer(ops, adj, depth, dim_x=96)
+        code, code_rel_pos, code_depth = tokenizer(ops, adj, depth, dim_x=32)
         sample = dict()
         sample["code"] = code.unsqueeze(0)
         sample["code_depth"] = code_depth.unsqueeze(0)

@@ -54,6 +54,7 @@ def argLoader():
         default=96,
         help="Operations encoding dim = 2*multires_x",
     )
+    parser.add_argument("--in_chans", type=int, default=32)
     parser.add_argument("--graph_d_model", type=int, default=192)
     parser.add_argument("--graph_n_head", type=int, default=6)
     parser.add_argument("--graph_d_ff", type=int, default=768)

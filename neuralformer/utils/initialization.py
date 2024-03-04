@@ -17,6 +17,7 @@ def init_layers(args, logger):
     # Model
     net = NeuralFormer(
         depths=args.depths,
+        in_chans=args.in_chans,
         dim=args.graph_d_model,
         n_head=args.graph_n_head,
         mlp_ratio=args.graph_d_ff // args.graph_d_model,

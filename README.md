@@ -32,16 +32,6 @@ You can generate the preprocessed dataset following the steps below.  This pipel
    ```
    The generated file `all_nasbench201.pt` will be saved in `./data/nasbench201/`.
 
-4. With the newest version, the absolute position embedding is no longer required. Then the augmentation makes no difference.
-   
-   **Both PE and augmentation part are removed.**
-   > Run the following code to generate the augmented data file.
-   > ```
-   > python ac_aug_generate.py --dataset nasbench201 --data_path data/nasbench201/all_nasbench201.pt
-   > # python ac_aug_generate.py --dataset nasbench101 --data_path data/nasbench101/all_nasbench101.pt --n_percent 0.05
-   > ```
-   > The file of augmented data will be saved in `./data/nasbench201/`.
-
 ### Train NeuralFormer
 You can train NeuralFormer following the script below:
 ```

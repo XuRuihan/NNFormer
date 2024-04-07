@@ -15,6 +15,6 @@ python $BASE_DIR/main.py \
     --save_path "output/nasbench101/neuralformer_1%/${PRETRAINED}_test_all/" \
     --pretrained_path "output/nasbench101/neuralformer_1%/${PRETRAINED}.pth.tar" \
     --embed_type "nape" \
-    --use_extra_token \
+    --depth_embed --class_token \
 
 done

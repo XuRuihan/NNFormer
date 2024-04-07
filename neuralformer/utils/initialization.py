@@ -5,7 +5,7 @@ from timm.optim import create_optimizer_v2, optimizer_kwargs
 from neuralformer.optim.scheduler import (
     get_linear_schedule_with_warmup,
     get_cosine_schedule_with_warmup,
-    get_cosine_with_hard_restarts_schedule_with_warmup
+    get_cosine_with_hard_restarts_schedule_with_warmup,
 )
 from neuralformer.models.encoders import NeuralFormer
 from neuralformer.models.losses import NARLoss
@@ -25,14 +25,15 @@ def init_layers(args, logger):
         dropout=args.dropout,
         droppath=args.drop_path_rate,
         avg_tokens=args.avg_tokens,
-        use_extra_token=args.use_extra_token,
-        dataset=args.dataset
+        class_token=args.class_token,
+        depth_embed=args.depth_embed,
+        dataset=args.dataset,
     )
 
     if not args.do_train:
         return net
 
-    loss = NARLoss()
+    loss = NARLoss(args.lambda_mse, args.lambda_rank, args.lambda_consistency)
     model_info(net, logger)
 
     if torch.cuda.is_available():
@@ -63,7 +64,7 @@ def init_optim(args, net, nbatches, warm_step=0.1):
         num_warmup_steps=warm_step * nbatches * args.epochs,
         num_training_steps=nbatches * args.epochs,
         num_cycles=1,
-        min_ratio=args.min_ratio
+        min_ratio=args.min_ratio,
     )
     print("warmup steps:", warm_step * nbatches * args.epochs)
     return optimizer, lr_scheduler

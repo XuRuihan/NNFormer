@@ -61,7 +61,7 @@ def extract_graph_feature_from_networkx(
     macs,
     embed_type,
     undirected=False,
-    use_extra_token=True,
+    depth_embed=True,
 ):
     # (1) node features
     node_features = extract_node_features(
@@ -99,7 +99,7 @@ def extract_graph_feature_from_networkx(
     # (4) if use extra token
     depthtoken_feature = (
         extract_depthtoken_feature(len(features), embed_type="trans")
-        if use_extra_token
+        if depth_embed
         else None
     )
     return features, topo_features, static_features, end_feature, depthtoken_feature

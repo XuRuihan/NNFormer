@@ -18,7 +18,9 @@ def argLoader():
         default=4236,
         help="trainings samples, percent or numbers",
     )
-    parser.add_argument("--data_path", type=str, default="data/nasbench101/")
+    parser.add_argument(
+        "--data_path", type=str, default="data/nasbench101/all_nasbench101.pt"
+    )
     # NNLQP
     parser.add_argument("--override_data", action="store_true")
     parser.add_argument("--test_model_type", type=str, default="resnet18")
@@ -44,9 +46,14 @@ def argLoader():
         help="activation function used in transformer",
     )
     parser.add_argument(
-        "--use_extra_token",
+        "--class_token",
         action="store_true",
-        help="Whether use a extra token to predict",
+        help="Whether use the class token to predict",
+    )
+    parser.add_argument(
+        "--depth_embed",
+        action="store_true",
+        help="Whether use the depth embedding to predict",
     )
     parser.add_argument(
         "--multires_x",
@@ -207,10 +214,10 @@ def argLoader():
         help='weight of mse loss (default: "1.0")',
     )
     parser.add_argument(
-        "--lambda_diff",
+        "--lambda_rank",
         type=float,
         default=0.2,
-        help='weight of diff loss (default: "0.2")',
+        help='weight of ranking loss (default: "0.2")',
     )
     parser.add_argument(
         "--lambda_consistency",

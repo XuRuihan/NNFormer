@@ -31,8 +31,8 @@ def argLoader():
     parser.add_argument(
         "--embed_type",
         type=str,
-        default="onehot",
-        help="Type of position embedding: nape|nerf|trans|onehot",
+        default="onehot_op",
+        help="Type of position embedding: onehot_op|onehot_oppos|nape|nerf|trans",
     )
     parser.add_argument("--split_type", type=str, default="GATES", help="GATES|TNASP")
     args = parser.parse_args()

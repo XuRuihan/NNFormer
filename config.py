@@ -1,7 +1,7 @@
 import argparse
 
 
-def argLoader():
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=2023, help="random seed")
     parser.add_argument(

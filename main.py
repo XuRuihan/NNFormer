@@ -6,7 +6,7 @@ import numpy as np
 from timm.utils import get_state_dict
 
 from neuralformer.utils import *
-from config import argLoader
+from config import parse_args
 from neuralformer.data_process import init_dataloader
 
 
@@ -257,7 +257,7 @@ def test(config):
 
 
 if __name__ == "__main__":
-    args = argLoader()
+    args = parse_args()
     if os.path.exists(args.save_path):
         raise Exception("Dir already exit! Please check it!")
     else:

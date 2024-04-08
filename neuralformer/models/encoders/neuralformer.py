@@ -137,7 +137,7 @@ class Mlp(nn.Module):
         return x
 
 
-class GCNMlp(nn.Module):
+class GINMlp(nn.Module):
     def __init__(
         self,
         dim: int,
@@ -191,7 +191,7 @@ class FeedForwardBlock(nn.Module):
 
         self.norm = nn.LayerNorm(dim)
         if gcn:
-            self.mlp = GCNMlp(dim, mlp_ratio, act_layer=act_layer, drop=dropout)
+            self.mlp = GINMlp(dim, mlp_ratio, act_layer=act_layer, drop=dropout)
         else:
             self.mlp = Mlp(dim, mlp_ratio, act_layer=act_layer, drop=dropout)
         self.drop_path = DropPath(droppath) if droppath > 0.0 else nn.Identity()
@@ -232,10 +232,10 @@ class Encoder(nn.Module):
         self,
         depths: List[int] = [12],
         dim: int = 192,
-        n_head: int = 6,
+        n_head: int = 4,
         mlp_ratio: float = 4.0,
         act_layer: str = "relu",
-        dropout: float = 0.1,
+        dropout: float = 0.0,
         droppath: float = 0.0,
     ):
         super().__init__()
@@ -267,16 +267,27 @@ class RegHead(nn.Module):
     def __init__(
         self,
         in_channels: int,
+        out_channels: int,
         avg_tokens: bool = False,
-        out_channels: int = 1,
+        class_token: bool = True,
+        depth_embed: bool = True,
         dropout: float = 0.1,
     ):
         super().__init__()
+        assert (
+            avg_tokens or class_token
+        ), "`class_token` must be true if `avg_tokens` is false"
         self.avg_tokens = avg_tokens
+        self.class_token = class_token
+        self.depth_embed = depth_embed
         self.layer = nn.Linear(in_channels, out_channels)
 
     def forward(self, x: Tensor) -> Tensor:  # x(b/n_gpu, l, d)
         if self.avg_tokens:
+            if self.class_token:
+                x = x[:, 1:]
+            if self.depth_embed:
+                x = x[:, :-1]
             x_ = x.mean(dim=1)
         else:
             x_ = x[:, 0, :]  # (b, d)
@@ -352,7 +363,7 @@ class NeuralFormer(nn.Module):
         self.cls_token = nn.Parameter(torch.zeros(1, 1, dim)) if class_token else None
 
         self.norm = nn.LayerNorm(dim)
-        self.transformer = Encoder(
+        self.encoder = Encoder(
             depths=depths,
             dim=dim,
             n_head=n_head,
@@ -361,7 +372,7 @@ class NeuralFormer(nn.Module):
             dropout=dropout,
             droppath=droppath,
         )
-        self.head = RegHead(dim, avg_tokens, 1, dropout)
+        self.head = RegHead(dim, 1, avg_tokens, class_token, depth_embed, dropout)
 
         self.init_weights()
 
@@ -410,7 +421,7 @@ class NeuralFormer(nn.Module):
             adj = new_adj
         seqcode = self.norm(seqcode)
 
-        aev = self.transformer(seqcode, rel_pos, adj.to(torch.float))
+        aev = self.encoder(seqcode, rel_pos, adj.to(torch.float))
         # multi_stage:aev(b, 1, d)
         predict = self.head(aev) + 0.5
         return predict

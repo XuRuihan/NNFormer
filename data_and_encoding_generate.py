@@ -7,7 +7,7 @@ import tqdm
 from neuralformer.models.encoders import tokenizer
 
 
-def argLoader():
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=2023, help="random seed")
     parser.add_argument(
@@ -90,7 +90,7 @@ def get_nasbench201_item(archs, i: int):
 
 
 if __name__ == "__main__":
-    args = argLoader()
+    args = parse_args()
 
     random.seed(args.seed)
     save_dir = args.save_dir

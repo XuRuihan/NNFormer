@@ -28,9 +28,9 @@ class MultiHeadAttention(nn.Module):
         rel_pos_bias: bool = False,
     ):
         super().__init__()
-        self.dim = dim
         self.n_head = n_head
-        self.head_size = dim // n_head  # default: 32
+        self.head_size = dim // n_head
+        self.scale = math.sqrt(self.head_size)
 
         self.qkv = nn.Linear(dim, 3 * dim)
         self.proj = nn.Linear(dim, dim)
@@ -49,7 +49,7 @@ class MultiHeadAttention(nn.Module):
         query = query.view(B, L, self.n_head, self.head_size).transpose(1, 2)
         key = key.view(B, L, self.n_head, self.head_size).transpose(1, 2)
         value = value.view(B, L, self.n_head, self.head_size).transpose(1, 2)
-        attn = torch.matmul(query, key.mT) / math.sqrt(self.head_size)
+        score = torch.matmul(query, key.mT) / self.scale
         if self.rel_pos_bias:
             adj = adj.masked_fill(torch.logical_and(adj > 1, adj < 9), 0)
             adj = adj.masked_fill(adj != 0, 1)
@@ -65,13 +65,13 @@ class MultiHeadAttention(nn.Module):
             # pe = (
             #     self.rel_pos_forward(rel_pos) + self.rel_pos_backward(rel_pos.mT)
             # ).permute(0, 3, 1, 2)
-            # attn = attn * (1 + pe)
-            attn = attn.masked_fill(pe == 0, -torch.inf)
-        attn = F.softmax(attn, dim=-1)
+            # score = score * (1 + pe)
+            score = score.masked_fill(pe == 0, -torch.inf)
+        attn = F.softmax(score, dim=-1)
         attn = self.attn_dropout(attn)  # (b, n_head, l_q, l_k)
         x = torch.matmul(attn, value)
 
-        x = x.transpose(1, 2).contiguous().view(B, L, self.dim)
+        x = x.transpose(1, 2).reshape(B, L, C)
         return self.resid_dropout(self.proj(x))
 
     def extra_repr(self) -> str:
@@ -239,7 +239,6 @@ class Encoder(nn.Module):
         droppath: float = 0.0,
     ):
         super().__init__()
-        self.num_stage = len(depths)
         self.num_layers = sum(depths)
 
         # stochastic depth
@@ -256,7 +255,6 @@ class Encoder(nn.Module):
         self.norm = nn.LayerNorm(dim)
 
     def forward(self, x: Tensor, rel_pos: Tensor, adj: Tensor) -> Tensor:
-        # 1st stage: Encoder
         for i, layer in enumerate(self.layers):
             x = layer(x, rel_pos, adj)
         output = self.norm(x)

@@ -410,6 +410,11 @@ class NeuralFormer(nn.Module):
             )
             new_adj[:, 1:, 1:] = adj
             adj = new_adj
+            new_rel_pos = torch.ones(
+                rel_pos.shape[0], rel_pos.shape[1] + 1, rel_pos.shape[2] + 1, device=rel_pos.device
+            )
+            new_rel_pos[:, 1:, 1:] = rel_pos
+            rel_pos = new_rel_pos
         if self.depth_embed is not None:
             seqcode = torch.cat([seqcode, self.depth_embed(depth)], dim=1)
             new_adj = torch.zeros(
@@ -417,6 +422,11 @@ class NeuralFormer(nn.Module):
             )
             new_adj[:, :-1, :-1] = adj
             adj = new_adj
+            new_rel_pos = torch.ones(
+                rel_pos.shape[0], rel_pos.shape[1] + 1, rel_pos.shape[2] + 1, device=rel_pos.device
+            )
+            new_rel_pos[:, :-1, :-1] = rel_pos
+            rel_pos = new_rel_pos
         seqcode = self.norm(seqcode)
 
         aev = self.encoder(seqcode, rel_pos, adj.to(torch.float))

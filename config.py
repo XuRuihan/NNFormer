@@ -56,10 +56,7 @@ def parse_args():
         help="Whether use the depth embedding to predict",
     )
     parser.add_argument(
-        "--multires_x",
-        type=int,
-        default=96,
-        help="Operations encoding dim = 2*multires_x",
+        "--enc_dim", type=int, default=96, help="Operations encoding dim"
     )
     parser.add_argument("--in_chans", type=int, default=32)
     parser.add_argument("--graph_d_model", type=int, default=192)
@@ -70,8 +67,7 @@ def parse_args():
     parser.add_argument("--d_model", type=int, default=192)
     parser.add_argument(
         "--avg_tokens",
-        type=bool,
-        default=False,
+        action="store_true",
         help="Whether average the tokens of embedding to predict",
     )
 

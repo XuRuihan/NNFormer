@@ -7,12 +7,11 @@ python $BASE_DIR/main.py \
     --data_path "$BASE_DIR/data/nasbench201/all_nasbench201.pt" \
     --batch_size 2048 \
     --graph_d_model 192 \
-    --d_model 192 \
     --graph_d_ff 768 \
-    --graph_n_head 4 \
+    --graph_n_head 6 \
     --depths 12 \
-    --save_path "output/nasbench201/neuralformer_5%/${PRETRAINED}_test_all/" \
-    --pretrained_path "output/nasbench201/neuralformer_5%/${PRETRAINED}.pth.tar" \
+    --save_path "output/tnasp/nasbench201/neuralformer_50%/${PRETRAINED}_test_all/" \
+    --pretrained_path "output/tnasp/nasbench201/neuralformer_50%/${PRETRAINED}.pth.tar" \
     --depth_embed --class_token \
 
 done

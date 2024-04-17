@@ -27,8 +27,8 @@ You can generate the preprocessed dataset following the steps below.  This pipel
 
 3. Encode each architecture with our proposed tokenizer.
    ```
-   python data_and_encoding_generate.py --dataset nasbench201 --data_path data/nasbench201/cifar10_valid_converged.json --save_dir data/nasbench201/
-   # python data_and_encoding_generate.py --dataset nasbench101 --data_path data/nasbench101/nasbench101.json --save_dir data/nasbench101/
+   python encoding_from_origin_dataset.py --dataset nasbench201 --data_path data/nasbench201/cifar10_valid_converged.json --save_dir data/nasbench201/
+   # python encoding_from_origin_dataset.py --dataset nasbench101 --data_path data/nasbench101/nasbench101.json --save_dir data/nasbench101/
    ```
    The generated file `all_nasbench201.pt` will be saved in `./data/nasbench201/`.
 

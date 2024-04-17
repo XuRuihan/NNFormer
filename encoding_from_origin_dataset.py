@@ -26,7 +26,7 @@ def parse_args():
         "--load_all", type=bool, default=True, help="load total dataset"
     )
     parser.add_argument(
-        "--multires_x", type=int, default=32, help="dim of operation encoding"
+        "--enc_dim", type=int, default=32, help="dim of operation encoding"
     )
     parser.add_argument(
         "--embed_type",
@@ -39,18 +39,12 @@ def parse_args():
     return args
 
 
-def get_nasbench101_item(archs, i: int):
+def get_nasbench101_item(archs, i: int, enc_dim, embed_type):
     index = str(i)
     ops = archs[index]["module_operations"]
     adj = archs[index]["module_adjacency"]
     depth = len(ops)
-    code, rel_pos, code_depth = tokenizer(
-        ops,
-        adj,
-        depth,
-        args.multires_x,
-        args.embed_type,
-    )
+    code, rel_pos, code_depth = tokenizer(ops, adj, depth, enc_dim, embed_type)
     return {
         "index": i,
         "adj": adj,
@@ -63,18 +57,12 @@ def get_nasbench101_item(archs, i: int):
     }
 
 
-def get_nasbench201_item(archs, i: int):
+def get_nasbench201_item(archs, i: int, enc_dim, embed_type):
     index = str(i)
     ops = archs[index]["module_operations"]
     adj = archs[index]["module_adjacency"]
     depth = len([op for op in ops if op != 5])  # `op == 5` indicates `none`
-    code, rel_pos, code_depth = tokenizer(
-        ops,
-        adj,
-        depth,
-        args.multires_x,
-        args.embed_type,
-    )
+    code, rel_pos, code_depth = tokenizer(ops, adj, depth, enc_dim, embed_type)
     return {
         "index": i,
         "adj": adj,
@@ -89,7 +77,7 @@ def get_nasbench201_item(archs, i: int):
     }
 
 
-if __name__ == "__main__":
+def main():
     args = parse_args()
 
     random.seed(args.seed)
@@ -107,9 +95,13 @@ if __name__ == "__main__":
         data = {}
         for i in tqdm.trange(len(archs)):
             if args.dataset == "nasbench101":
-                data[id_list[i]] = get_nasbench101_item(archs, i)
+                data[id_list[i]] = get_nasbench101_item(
+                    archs, i, args.enc_dim, args.embed_type
+                )
             elif args.dataset == "nasbench201":
-                data[id_list[i]] = get_nasbench201_item(archs, i)
+                data[id_list[i]] = get_nasbench201_item(
+                    archs, i, args.enc_dim, args.embed_type
+                )
         torch.save(data, os.path.join(save_dir, f"all_{args.dataset}.pt"))
 
     if not args.load_all:
@@ -140,18 +132,24 @@ if __name__ == "__main__":
 
             for i in train_list[:l1]:
                 idx = len(train_data)
-                train_data[idx] = get_nasbench101_item(archs, i)
+                train_data[idx] = get_nasbench101_item(
+                    archs, i, args.enc_dim, args.embed_type
+                )
             torch.save(train_data, os.path.join(save_dir, "train.pt"))
 
             # for i in id_list[l1:l2]:
             for i in train_list[l1:lv]:
                 idx = len(val_data)
-                val_data[idx] = get_nasbench101_item(archs, i)
+                val_data[idx] = get_nasbench101_item(
+                    archs, i, args.enc_dim, args.embed_type
+                )
             torch.save(val_data, os.path.join(save_dir, "val.pt"))
 
             for i in id_list[l2:]:
                 idx = len(test_data)
-                test_data[idx] = get_nasbench101_item(archs, i)
+                test_data[idx] = get_nasbench101_item(
+                    archs, i, args.enc_dim, args.embed_type
+                )
             torch.save(test_data, os.path.join(save_dir, "test.pt"))
 
         elif args.dataset == "nasbench201":
@@ -178,7 +176,9 @@ if __name__ == "__main__":
             train_data, test_data = {}, {}
             for i in train_list[:l1]:
                 idx = len(train_data)
-                train_data[idx] = get_nasbench201_item(archs, i)
+                train_data[idx] = get_nasbench201_item(
+                    archs, i, args.enc_dim, args.embed_type
+                )
             torch.save(train_data, os.path.join(save_dir, "train.pt"))
 
             if args.split_type == "TNASP":
@@ -186,11 +186,19 @@ if __name__ == "__main__":
                 for i in train_list[l1:lv]:
                     print(i)
                     idx = len(val_data)
-                    val_data[idx] = get_nasbench201_item(archs, i)
+                    val_data[idx] = get_nasbench201_item(
+                        archs, i, args.enc_dim, args.embed_type
+                    )
                 torch.save(val_data, os.path.join(save_dir, "val.pt"))
 
             for i in id_list[l2:]:
                 print(i)
                 idx = len(test_data)
-                test_data[idx] = get_nasbench201_item(archs, i)
+                test_data[idx] = get_nasbench201_item(
+                    archs, i, args.enc_dim, args.embed_type
+                )
             torch.save(test_data, os.path.join(save_dir, "test.pt"))
+
+
+if __name__ == "__main__":
+    main()

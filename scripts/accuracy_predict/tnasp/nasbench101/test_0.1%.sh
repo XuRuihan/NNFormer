@@ -8,12 +8,11 @@ python $BASE_DIR/main.py \
     --percent 424 \
     --batch_size 2048 \
     --graph_d_model 192 \
-    --d_model 192 \
     --graph_d_ff 768 \
     --graph_n_head 4 \
     --depths 12 \
-    --save_path "output/nasbench101/neuralformer_0.1%/${PRETRAINED}_test_all/" \
-    --pretrained_path "output/nasbench101/neuralformer_0.1%/${PRETRAINED}.pth.tar" \
+    --save_path "output/tnasp/nasbench101/neuralformer_0.1%/${PRETRAINED}_test_all/" \
+    --pretrained_path "output/tnasp/nasbench101/neuralformer_0.1%/${PRETRAINED}.pth.tar" \
     --depth_embed --class_token \
 
 done

@@ -32,8 +32,8 @@ class MultiHeadAttention(nn.Module):
         self.head_size = dim // n_head
         self.scale = math.sqrt(self.head_size)
 
-        self.qkv = nn.Linear(dim, 3 * dim)
-        self.proj = nn.Linear(dim, dim)
+        self.qkv = nn.Linear(dim, 3 * dim, False)
+        self.proj = nn.Linear(dim, dim, False)
         self.attn_dropout = nn.Dropout(dropout)
         self.resid_dropout = nn.Dropout(dropout)
 
@@ -115,7 +115,7 @@ class Mlp(nn.Module):
         hidden_features = int(mlp_ratio * in_features)
         drop_probs = to_2tuple(drop)
 
-        self.fc1 = nn.Linear(in_features, hidden_features)
+        self.fc1 = nn.Linear(in_features, hidden_features, False)
         if act_layer.lower() == "relu":
             self.act = nn.ReLU()
         elif act_layer.lower() == "leaky_relu":
@@ -125,7 +125,7 @@ class Mlp(nn.Module):
         else:
             raise ValueError(f"Unsupported activation: {act_layer}")
         self.drop1 = nn.Dropout(drop_probs[0])
-        self.fc2 = nn.Linear(hidden_features, out_features)
+        self.fc2 = nn.Linear(hidden_features, out_features, False)
         self.drop2 = nn.Dropout(drop_probs[1])
 
     def forward(self, x: Tensor, adj: Optional[Tensor] = None) -> Tensor:
@@ -152,8 +152,8 @@ class GINMlp(nn.Module):
         hidden_features = int(mlp_ratio * in_features)
         drop_probs = to_2tuple(drop)
 
-        self.fc1 = nn.Linear(in_features, hidden_features)
-        self.gcn = nn.Linear(in_features, hidden_features)
+        self.fc1 = nn.Linear(in_features, hidden_features, False)
+        self.gcn = nn.Linear(in_features, hidden_features, False)
         if act_layer.lower() == "relu":
             self.act = nn.ReLU()
         elif act_layer.lower() == "leaky_relu":
@@ -163,7 +163,7 @@ class GINMlp(nn.Module):
         else:
             raise ValueError(f"Unsupported activation: {act_layer}")
         self.drop1 = nn.Dropout(drop_probs[0])
-        self.fc2 = nn.Linear(hidden_features, out_features)
+        self.fc2 = nn.Linear(hidden_features, out_features, False)
         self.drop2 = nn.Dropout(drop_probs[1])
 
     def forward(self, x: Tensor, adj: Tensor) -> Tensor:
@@ -214,7 +214,7 @@ class EncoderBlock(nn.Module):
     ):
         super().__init__()
         self.self_attn = SelfAttentionBlock(
-            dim, n_head, dropout, droppath, rel_pos_bias=False
+            dim, n_head, dropout, droppath, rel_pos_bias=True
         )
         self.feed_forward = FeedForwardBlock(
             dim, mlp_ratio, act_layer, dropout, droppath, gcn=True

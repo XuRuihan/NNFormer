@@ -4,7 +4,8 @@ import numpy as np
 import json
 from collections import OrderedDict
 
-nas_bench = API("data/nasbench201/NAS-Bench-201-v1_0-e61699.pth")
+# nas_bench = API("data/nasbench201/NAS-Bench-201-v1_0-e61699.pth")
+nas_bench = API("data/nasbench201/NAS-Bench-201-v1_1-096897.pth")
 
 
 # num = len(api)
@@ -58,9 +59,18 @@ def info2mat(arch_index, dataset):
             nodes.append(n)
     nodes.append("output")
 
-    node_mat = np.zeros([8, len(ops)]).astype(int)
+    # node_mat = np.zeros([8, len(ops)]).astype(int)
     ops_idx = [ops[k] for k in nodes]
-    node_mat[[0, 1, 2, 3, 4, 5, 6, 7], ops_idx] = 1
+    # node_mat[[0, 1, 2, 3, 4, 5, 6, 7], ops_idx] = 1
+
+    is_valid_op = np.array([k != "none" for k in nodes])
+    adj_mat = adj_mat[is_valid_op][:, is_valid_op]
+    adj_power = np.linalg.matrix_power(adj_mat + np.eye(adj_mat.shape[0]), 3)
+    is_valid_2 = np.logical_and(adj_power[0, :] != 0, adj_power[:, -1] != 0) 
+    is_valid_2[0] = True
+    is_valid_2[-1] = True
+    ops_idx = np.array(ops_idx)[is_valid_op][is_valid_2].tolist()
+    adj_mat = adj_mat[is_valid_2][:, is_valid_2]
 
     # For cifar10-valid with converged
     if dataset == "cifar10_valid_converged":
@@ -90,7 +100,7 @@ def info2mat(arch_index, dataset):
             "validation_accuracy": valid_acc,
             "validation_accuracy_avg": val_acc_avg,
             "module_adjacency": adj_mat.tolist(),
-            "module_operations": node_mat.tolist(),
+            # "module_operations": node_mat.tolist(),
             "training_time": time_cost,
         }
     return cifar100
@@ -106,7 +116,7 @@ def info2mat(arch_index, dataset):
             "validation_accuracy": valid_acc,
             "validation_accuracy_avg": val_acc_avg,
             "module_adjacency": adj_mat.tolist(),
-            "module_operations": node_mat.tolist(),
+            # "module_operations": node_mat.tolist(),
             "training_time": time_cost,
         }
     return ImageNet16_120
@@ -118,7 +128,7 @@ def train_and_eval(arch_index, nepoch=None, dataname=None, use_converged_LR=True
         assert (
             nepoch == None
         ), "When using use_converged_LR=True, please set nepoch=None, use 12-converged-epoch by default."
-        info = nas_bench.get_more_info(arch_index, dataname, None, "12", True)
+        info = nas_bench.get_more_info(arch_index, dataname, None, "200", True)
         valid_acc, time_cost = (
             info["valid-accuracy"],
             info["train-all-time"] + info["valid-per-time"],

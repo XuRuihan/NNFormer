@@ -2,7 +2,7 @@ import random
 import shutil
 import numpy as np
 import torch
-from scipy.stats import stats
+import scipy.stats as stats
 
 
 def model_info(model, logger):

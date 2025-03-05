@@ -1,7 +1,7 @@
 import numpy as np
 from .feature_utils import FEATURE_LENGTH, FEATURE_DIM
 from .node_feature import EmbedValue
-from neuralformer.data_process.position_encoding import Embedder
+from nnformer.data_process.position_encoding import Embedder
 
 
 def extract_topology_feature(

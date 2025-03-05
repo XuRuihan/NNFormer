@@ -1,6 +1,6 @@
 import numpy as np
 from .feature_utils import OPS, ATTRS, FEATURE_LENGTH, FEATURE_DIM
-from neuralformer.data_process.position_encoding import Embedder
+from nnformer.data_process.position_encoding import Embedder
 
 # int -> operation type embedding
 def embed_op_code(op_type, embed_type="nerf", input_type="np_array"):

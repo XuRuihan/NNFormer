@@ -5,9 +5,9 @@ import random
 import numpy as np
 from timm.utils import get_state_dict
 
-from neuralformer.utils import *
+from nnformer.utils import *
 from config import parse_args
-from neuralformer.data_process import init_dataloader
+from nnformer.data_process import init_dataloader
 
 
 def format_second(secs):

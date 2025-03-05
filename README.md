@@ -1,14 +1,14 @@
-# NeuralFormer: Neural predictor for neural architectures
+# NNFormer: Neural predictor for neural architectures
 
 This is the source code for paper:<br> 
 [Predictor-based Neural Architecture Search with Teacher Guidance]()
 
-![NeuralFormer](./assets/neuralformer.png)
-Figure 1: **Illustrations of our proposed NeuralFormer.** Our approach uses Neural Architecture Position Encoding (NAPE), Bidirectional Adjacency Aggregation (BAA) in the MLP to enhance local topological features, and Bidirectional Relative Position Embedding (BRPE) in the self-attention layer to introduce the global topological information. NeuralFormer is trained with Teacher Guidance (TG).
+![NNFormer](./assets/nnformer.png)
+Figure 1: **Illustrations of our proposed NNFormer.** Our approach uses Neural Architecture Position Encoding (NAPE), Bidirectional Adjacency Aggregation (BAA) in the MLP to enhance local topological features, and Bidirectional Relative Position Embedding (BRPE) in the self-attention layer to introduce the global topological information. NNFormer is trained with Teacher Guidance (TG).
 
 ## Introduction
 Predictor-Based Neural Architecture Search (NAS) leverages predictors to quickly estimate the performance of architectures, thus minimizing the time-consuming training of candidate networks. This approach has gained significant traction and is a prominent branch within NAS. In Predictor-Based NAS algorithms, establishing a robust predictor is the fundamental challenge. Presently, most predictors fall short in robustness and require a substantial number of candidate architecture-performance pairs for effective training. These issues easily lead to undertrained predictors, and contradict the efficiency goal of predictor-based NAS.
-We proposed a strong predictor named **NeuralFormer**. By encoding the network topology as features and harnessing the advanced transformer architecture, NeuralFormer achieves promising prediction performance with a relatively small number of training pairs. Additionally, we propose an evolutionary NAS algorithm with teacher guidance, providing more comprehensive knowledge to fully train candidate architectures and boost their performance. Extensive experiments of accuracy prediction and NAS demonstrate that both the proposed NeuralFormer and the teacher-guided evolutionary strategy exhibit impressive performance across various search spaces and vision tasks. 
+We proposed a strong predictor named **NNFormer**. By encoding the network topology as features and harnessing the advanced transformer architecture, NNFormer achieves promising prediction performance with a relatively small number of training pairs. Additionally, we propose an evolutionary NAS algorithm with teacher guidance, providing more comprehensive knowledge to fully train candidate architectures and boost their performance. Extensive experiments of accuracy prediction and NAS demonstrate that both the proposed NNFormer and the teacher-guided evolutionary strategy exhibit impressive performance across various search spaces and vision tasks. 
 
 
 ## Experiments on NAS-Bench-201
@@ -32,15 +32,15 @@ You can generate the preprocessed dataset following the steps below.  This pipel
    ```
    The generated file `all_nasbench201.pt` will be saved in `./data/nasbench201/`.
 
-### Train NeuralFormer
-You can train NeuralFormer following the script below:
+### Train NNFormer
+You can train NNFormer following the script below:
 ```
 bash scripts/Accuracy_Predict_NASBench201/train_5%.sh
 ```
-The trained models will be saved in `./output/nasbench-201/neuralformer_5%/`. Training scripts of other settings are shown in the [scripts](./scripts/) directory.
+The trained models will be saved in `./output/nasbench-201/nnformer_5%/`. Training scripts of other settings are shown in the [scripts](./scripts/) directory.
 
 ### Evaluate the pretrained model
-You can evaluate the trained NeuralFormer following the script below:
+You can evaluate the trained NNFormer following the script below:
 ```
 bash test_5%.sh
 ```

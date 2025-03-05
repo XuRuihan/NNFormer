@@ -11,8 +11,8 @@ python $BASE_DIR/main.py \
     --graph_d_ff 640 \
     --graph_n_head 4 \
     --depths 6 \
-    --save_path "output/nasbench101/neuralformer_0.04%_l6/${PRETRAINED}_test_all/" \
-    --pretrained_path "output/nasbench101/neuralformer_0.04%_l6/${PRETRAINED}.pth.tar" \
+    --save_path "output/nasbench101/nnformer_0.04%_l6/${PRETRAINED}_test_all/" \
+    --pretrained_path "output/nasbench101/nnformer_0.04%_l6/${PRETRAINED}.pth.tar" \
     --depth_embed --class_token \
 
 done

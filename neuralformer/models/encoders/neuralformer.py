@@ -8,7 +8,7 @@ from timm.models.layers import DropPath, to_2tuple
 from torch import Tensor
 
 # import algos
-from neuralformer.data_process.position_encoding import Embedder
+from nnformer.data_process.position_encoding import Embedder
 
 
 class SquareReLU(nn.Module):
@@ -338,7 +338,7 @@ def tokenizer(
         return code_ops, rel_pos, code_depth
 
 
-class NeuralFormer(nn.Module):
+class NNFormer(nn.Module):
     def __init__(
         self,
         depths: List[int] = [12],

@@ -3,16 +3,16 @@
 import torch.utils.benchmark as benchmark
 
 # from config import parse_args
-# from neuralformer.data_process import init_dataloader
-from neuralformer.models.encoders import NeuralFormer
+# from nnformer.data_process import init_dataloader
+from nnformer.models.encoders import NNFormer
 
-# from neuralformer.utils import setup_logger
+# from nnformer.utils import setup_logger
 import torch
 
 # args = parse_args()
 # logger = setup_logger("output/benchmark.log")
 
-net = NeuralFormer()
+net = NNFormer()
 
 # train_loader, val_loader = init_dataloader(args, logger)
 

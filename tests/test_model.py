@@ -4,14 +4,14 @@ import os
 import sys
 
 sys.path.append(os.getcwd())
-from neuralformer.models.encoders.neuralformer import NeuralFormer, tokenizer
-import neuralformer
+from nnformer.models.encoders.nnformer import NNFormer, tokenizer
+import nnformer
 
 
 class TestModel(unittest.TestCase):
     @torch.inference_mode()
-    def test_neuralformer(self):
-        model = NeuralFormer()
+    def test_nnformer(self):
+        model = NNFormer()
         model.eval()
 
         ops = [0, 1, 2, 3, 4]

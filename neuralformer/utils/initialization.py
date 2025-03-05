@@ -2,20 +2,20 @@ import torch
 from timm.utils import ModelEma
 from timm.optim import create_optimizer_v2, optimizer_kwargs
 
-from neuralformer.optim.scheduler import (
+from nnformer.optim.scheduler import (
     get_linear_schedule_with_warmup,
     get_cosine_schedule_with_warmup,
     get_cosine_with_hard_restarts_schedule_with_warmup,
 )
-from neuralformer.models.encoders import NeuralFormer
-from neuralformer.models.losses import NARLoss
+from nnformer.models.encoders import NNFormer
+from nnformer.models.losses import NARLoss
 from .utils import model_info
 from parallel import DataParallelModel, DataParallelCriterion
 
 
 def init_layers(args, logger):
     # Model
-    net = NeuralFormer(
+    net = NNFormer(
         depths=args.depths,
         in_chans=args.in_chans,
         dim=args.graph_d_model,

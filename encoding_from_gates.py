@@ -5,7 +5,7 @@ import random
 import torch
 from torch_geometric.utils import to_dense_adj
 
-from neuralformer.models.encoders import tokenizer
+from nnformer.models.encoders import tokenizer
 
 
 def parse_args():

@@ -4,7 +4,7 @@ import random
 import argparse
 import json
 import tqdm
-from neuralformer.models.encoders import tokenizer
+from nnformer.models.encoders import tokenizer
 
 
 def parse_args():

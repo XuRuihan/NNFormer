@@ -16,6 +16,6 @@ python $BASE_DIR/main.py \
     --lr 1e-4 \
     --lambda_rank 0.2 \
     --test_freq 5 \
-    --save_path "output/nasbench201/neuralformer_3%/" \
+    --save_path "output/nasbench201/nnformer_3%/" \
     --depth_embed --class_token \
     --lambda_consistency 1.0 \

@@ -1,3 +1,3 @@
-from .neuralformer import NeuralFormer, tokenizer
+from .nnformer import NNFormer, tokenizer
 
-__all__ = ["NeuralFormer", "tokenizer"]
+__all__ = ["NNFormer", "tokenizer"]
